@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Wereld vol verhalen – Inschrijven & Presentatiestand</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
 <style>
   :root{--green:#1b4b3b;--bg:#f0f5f7;}
@@ -54,7 +54,6 @@
   <div class="box">
     <h2>Back-office</h2>
     <p>Wachtwoord: <code>admin</code></p>
-    <p>1️⃣ Kies een Excel-bestand<br>2️⃣ Klik op <strong>Laden</strong> om te importeren</p>
     <input type="file" id="importExcelInput" accept=".xlsx,.xls" style="margin-top:8px;">
     <button id="loadExcelBtn" class="btn" style="margin-top:10px;">Laden</button>
     <div id="adminContent" style="margin-top:15px; font-size:0.95rem; color:#333;">Nog geen data geladen.</div>
@@ -67,7 +66,11 @@
 <script>
 let WORKSHOPS = {};
 let uploadedExcel = null;
-const STORAGE_KEY = "wvverhalen_workshops_git_full";
+const STORAGE_KEY = "wvverhalen_workshops_v6";
+
+function normalize(str){
+  return str.toLowerCase().replace(/[()]/g,"").replace(/[^a-z0-9]/gi,"").trim();
+}
 
 // --- Admin functionaliteit ---
 const adminBtn = document.getElementById('adminFab');
@@ -89,7 +92,7 @@ excelInput.addEventListener("change", ev=>{
   if(file){ uploadedExcel = file; adminContent.textContent = `Bestand geselecteerd: ${file.name}`; }
 });
 
-// Excel laden met extra kolommen: organisatie + duur
+// Parser met tolerante kolomherkenning
 loadExcelBtn.addEventListener("click", ()=>{
   if(!uploadedExcel){ alert("Kies eerst een Excel-bestand."); return; }
   const reader = new FileReader();
@@ -102,20 +105,15 @@ loadExcelBtn.addEventListener("click", ()=>{
         const ws = wb.Sheets[name];
         const rows = XLSX.utils.sheet_to_json(ws,{defval:""});
         rows.forEach(r=>{
-          const get = (keys)=>{
-            const entries = Object.keys(r);
-            for(const k of entries){
-              for(const target of keys){ if(k.toLowerCase().includes(target)) return r[k]; }
-            }
-            return "";
-          };
-          const dag = (get(["dag"])||"").toString().trim();
-          const tijd = (get(["tijd","ronde"])||"").toString().trim();
-          const titel = (get(["workshop","titel"])||"").toString().trim();
-          const begeleider = (get(["begeleider","docent"])||"").toString().trim();
-          const organisatie = (get(["organisatie","bedrijf","instelling"])||"").toString().trim();
-          const cap = parseInt(get(["capaciteit","max","aantal"])||0);
-          const duur = parseInt(get(["duur","minuten"])||0);
+          const keys = {};
+          for(const k in r){ keys[normalize(k)] = r[k]; }
+          const dag = (keys["dag"]||"").toString().trim();
+          const tijd = (keys["tijd"]||keys["ronde"]||"").toString().trim();
+          const titel = (keys["workshop"]||keys["titel"]||"").toString().trim();
+          const begeleider = (keys["begeleider"]||keys["docent"]||"").toString().trim();
+          const organisatie = (keys["organisatie"]||keys["bedrijf"]||"").toString().trim();
+          const cap = parseInt(keys["capaciteit"]||keys["aantal"]||0);
+          const duur = parseInt(keys["duurminuten"]||keys["minuten"]||0);
           if(!titel) return;
           const day = dag.toLowerCase().includes("don") ? "Donderdag" : "Dinsdag";
           const round = tijd.includes("13") ? "13:00" : "11:00";
@@ -130,7 +128,7 @@ loadExcelBtn.addEventListener("click", ()=>{
           });
         });
       });
-      if(Object.keys(result).length===0){ throw new Error("Geen geldige data gevonden."); }
+      if(Object.keys(result).length===0) throw new Error("Geen geldige rijen gevonden. Controleer de kolomnamen.");
       WORKSHOPS = result;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(WORKSHOPS));
       adminContent.innerHTML = "✅ Workshops succesvol geladen!";
@@ -139,7 +137,7 @@ loadExcelBtn.addEventListener("click", ()=>{
     } catch(err){
       console.error(err);
       alert("❌ Fout bij laden van Excel: " + err.message);
-      adminContent.innerHTML = "<span style='color:#b00020'>Fout bij lezen van bestand. Controleer kolomnamen.</span>";
+      adminContent.innerHTML = "<span style='color:#b00020'>Fout bij lezen van bestand. Controleer de kolomnamen.</span>";
     }
   };
   reader.readAsArrayBuffer(uploadedExcel);

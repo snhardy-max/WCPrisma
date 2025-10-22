@@ -1,30 +1,28 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wereld vol verhalen – Inschrijven & Presentatiestand</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Handlee&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
 <style>
-  :root{ --green:#1b4b3b; --bg:#f0f5f7; }
-  *{ box-sizing:border-box; }
-  body{ margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:#222; }
-  header{ position:sticky; top:0; z-index:20; background:#fff; border-bottom:1px solid #e6e6e6; }
-  .wrap{ max-width:1200px; margin:0 auto; padding:14px 18px; }
-  h1{ margin:0; color:var(--green); font-size:1.9rem; }
-  nav{ display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
-  .navbtn{ padding:8px 14px; border-radius:999px; border:1px solid #cfe2da; background:white; cursor:pointer; transition:.2s; }
-  .navbtn.active, .navbtn:hover{ background:var(--green); color:white; }
-  .admin-fab{ position:fixed; right:18px; bottom:18px; background:var(--green); color:white; border-radius:999px; padding:12px 16px; box-shadow:0 6px 20px rgba(0,0,0,.25); cursor:pointer; z-index:9999; font-weight:600; }
-  .panel{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:10000; }
-  .box{ background:white; width:min(600px,95vw); border-radius:16px; padding:20px; box-shadow:0 6px 20px rgba(0,0,0,.25); }
-  .box h2{ margin-top:0; color:var(--green); }
-  .btn{ background:var(--green); color:#fff; border:none; border-radius:8px; padding:8px 14px; cursor:pointer; }
-  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin-top:14px; }
-  .card{ background:white; border:1px solid #e9eef0; border-radius:16px; padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.05); }
-  .badge{ display:inline-block; padding:4px 10px; border-radius:999px; border:1px dashed #cfe2da; color:#333; font-size:.85rem; margin-bottom:8px; }
-  .title{ font-weight:700; margin:4px 0; color:#222; }
+  :root{--green:#1b4b3b;--bg:#f0f5f7;}
+  body{margin:0;font-family:'Poppins',sans-serif;background:var(--bg);color:#222;}
+  header{background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:20;}
+  .wrap{max-width:1200px;margin:auto;padding:14px 18px;}
+  h1{margin:0;color:var(--green);}
+  nav{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+  .navbtn{padding:8px 14px;border-radius:999px;border:1px solid #cfe2da;background:white;cursor:pointer;}
+  .navbtn.active{background:var(--green);color:white;}
+  .admin-fab{position:fixed;right:18px;bottom:18px;background:var(--green);color:white;border:none;border-radius:999px;padding:12px 16px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:9999;}
+  .panel{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10000;}
+  .box{background:white;border-radius:12px;padding:20px;width:min(600px,90vw);box-shadow:0 6px 20px rgba(0,0,0,.3);}
+  .btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:14px;}
+  .card{background:white;border:1px solid #e9eef0;border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+  .badge{display:inline-block;padding:4px 10px;border-radius:999px;border:1px dashed #cfe2da;color:#333;font-size:.85rem;margin-bottom:8px;}
+  .title{font-weight:700;margin:4px 0;color:#222;}
 </style>
 </head>
 <body>
@@ -50,7 +48,7 @@
   </div>
 </section>
 
-<!-- ADMIN KNOP EN MENU -->
+<!-- ADMIN -->
 <button class="admin-fab" id="adminFab">Admin</button>
 <div class="panel" id="adminPanel">
   <div class="box">
@@ -68,10 +66,10 @@
 
 <script>
 let WORKSHOPS = {};
-const STORAGE_KEY = "wvverhalen_workshops_github";
 let uploadedExcel = null;
+const STORAGE_KEY = "wvverhalen_workshops_git_full";
 
-// --- ADMIN PANEL LOGICA ---
+// --- Admin functionaliteit ---
 const adminBtn = document.getElementById('adminFab');
 const adminPanel = document.getElementById('adminPanel');
 const closeAdmin = document.getElementById('closeAdmin');
@@ -79,132 +77,144 @@ const excelInput = document.getElementById('importExcelInput');
 const loadExcelBtn = document.getElementById('loadExcelBtn');
 const adminContent = document.getElementById('adminContent');
 
-// Open admin
-adminBtn.addEventListener('click',()=>{
-  const pw = prompt('Voer wachtwoord in:');
-  if(pw==='admin'){ adminPanel.style.display='flex'; }
-  else alert('Onjuist wachtwoord.');
-});
-closeAdmin.addEventListener('click',()=>adminPanel.style.display='none');
+adminBtn.onclick = ()=>{
+  const pw = prompt("Voer wachtwoord in:");
+  if(pw==="admin") adminPanel.style.display="flex";
+  else alert("Onjuist wachtwoord.");
+};
+closeAdmin.onclick = ()=> adminPanel.style.display="none";
 
-// Excel kiezen
-excelInput.addEventListener('change',(ev)=>{
+excelInput.addEventListener("change", ev=>{
   const file = ev.target.files[0];
-  if(file){
-    uploadedExcel = file;
-    adminContent.textContent = `Bestand geselecteerd: ${file.name}`;
-  } else {
-    uploadedExcel = null;
-    adminContent.textContent = "Nog geen bestand geselecteerd.";
-  }
+  if(file){ uploadedExcel = file; adminContent.textContent = `Bestand geselecteerd: ${file.name}`; }
 });
 
-// Excel laden (GitHub Pages compatible)
-loadExcelBtn.addEventListener('click',()=>{
-  if(!uploadedExcel){ alert('Kies eerst een Excel-bestand.'); return; }
+// Excel laden met extra kolommen: organisatie + duur
+loadExcelBtn.addEventListener("click", ()=>{
+  if(!uploadedExcel){ alert("Kies eerst een Excel-bestand."); return; }
   const reader = new FileReader();
   reader.onload = (e)=>{
     try {
       const data = new Uint8Array(e.target.result);
       const wb = XLSX.read(data,{type:'array'});
       const result = {};
-      const ensure = (obj,k,init)=>{ if(!obj[k]) obj[k]=init; return obj[k]; };
       wb.SheetNames.forEach(name=>{
         const ws = wb.Sheets[name];
         const rows = XLSX.utils.sheet_to_json(ws,{defval:""});
         rows.forEach(r=>{
-          const lower = Object.fromEntries(Object.entries(r).map(([k,v])=>[k.toLowerCase(),v]));
-          let dag = (lower["dag"]||"").toString().trim();
-          let tijd = (lower["tijd"]||lower["ronde"]||"").toString().trim();
-          const titel = (lower["workshop"]||lower["titel"]||"").toString().trim();
-          const begeleider = (lower["begeleider"]||lower["docent"]||"").toString().trim();
-          const cap = parseInt(lower["capaciteit"]||lower["max"]||lower["aantal"]||0);
+          const get = (keys)=>{
+            const entries = Object.keys(r);
+            for(const k of entries){
+              for(const target of keys){ if(k.toLowerCase().includes(target)) return r[k]; }
+            }
+            return "";
+          };
+          const dag = (get(["dag"])||"").toString().trim();
+          const tijd = (get(["tijd","ronde"])||"").toString().trim();
+          const titel = (get(["workshop","titel"])||"").toString().trim();
+          const begeleider = (get(["begeleider","docent"])||"").toString().trim();
+          const organisatie = (get(["organisatie","bedrijf","instelling"])||"").toString().trim();
+          const cap = parseInt(get(["capaciteit","max","aantal"])||0);
+          const duur = parseInt(get(["duur","minuten"])||0);
           if(!titel) return;
-          if(dag.toLowerCase().includes("din")) dag="Dinsdag";
-          else if(dag.toLowerCase().includes("don")) dag="Donderdag";
-          if(tijd.includes("13")) tijd="13:00"; else tijd="11:00";
-          ensure(result,dag,{}); ensure(result[dag],tijd,[]);
-          result[dag][tijd].push({title:titel,facilitator:begeleider,capacity:cap});
+          const day = dag.toLowerCase().includes("don") ? "Donderdag" : "Dinsdag";
+          const round = tijd.includes("13") ? "13:00" : "11:00";
+          if(!result[day]) result[day] = {};
+          if(!result[day][round]) result[day][round] = [];
+          result[day][round].push({
+            title:titel,
+            facilitator:begeleider,
+            organisation:organisatie,
+            capacity:isNaN(cap)?0:cap,
+            duration:isNaN(duur)?0:duur
+          });
         });
       });
+      if(Object.keys(result).length===0){ throw new Error("Geen geldige data gevonden."); }
       WORKSHOPS = result;
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(result));
-      adminContent.textContent = "✅ Workshops succesvol geladen!";
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(WORKSHOPS));
+      adminContent.innerHTML = "✅ Workshops succesvol geladen!";
       renderSignup();
       renderPresentation();
     } catch(err){
       console.error(err);
-      alert("Fout bij laden van Excel. Controleer het bestand.");
+      alert("❌ Fout bij laden van Excel: " + err.message);
+      adminContent.innerHTML = "<span style='color:#b00020'>Fout bij lezen van bestand. Controleer kolomnamen.</span>";
     }
   };
   reader.readAsArrayBuffer(uploadedExcel);
 });
 
-// --- INSCHRIJFWEERGAVE ---
+// --- Render functies ---
 function renderSignup(){
-  const cards = document.getElementById('cardsContainer');
-  cards.innerHTML = "";
+  const container = document.getElementById("cardsContainer");
+  container.innerHTML = "";
   for(const day in WORKSHOPS){
     for(const ronde in WORKSHOPS[day]){
-      const list = WORKSHOPS[day][ronde];
-      const title = document.createElement('h3');
-      title.textContent = `${day} – ${ronde}`;
-      cards.appendChild(title);
-      const grid = document.createElement('div');
-      grid.className = 'grid';
-      list.forEach(w=>{
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `<div class="badge">${ronde}</div><div class="title">${w.title}</div><p>Begeleider: ${w.facilitator||''}</p><p>Capaciteit: ${w.capacity||0}</p>`;
-        grid.appendChild(div);
+      const lijst = WORKSHOPS[day][ronde];
+      const h = document.createElement("h3");
+      h.textContent = `${day} – ${ronde}`;
+      container.appendChild(h);
+      const grid = document.createElement("div");
+      grid.className="grid";
+      lijst.forEach(w=>{
+        const c = document.createElement("div");
+        c.className="card";
+        c.innerHTML = `
+          <div class='badge'>${ronde}</div>
+          <div class='title'>${w.title}</div>
+          <p>Begeleider: ${w.facilitator||"-"}</p>
+          <p>Organisatie: ${w.organisation||"-"}</p>
+          <p>Capaciteit: ${w.capacity||0}</p>
+          <p>Duur: ${w.duration||0} minuten</p>`;
+        grid.appendChild(c);
       });
-      cards.appendChild(grid);
+      container.appendChild(grid);
     }
   }
 }
 
-// --- PRESENTATIESTAND ---
 function renderPresentation(){
-  const presGrid = document.getElementById('presGrid');
-  const presTitle = document.getElementById('presTitle');
-  presGrid.innerHTML = "";
+  const presGrid=document.getElementById('presGrid');
+  const presTitle=document.getElementById('presTitle');
+  presGrid.innerHTML="";
   for(const day in WORKSHOPS){
     for(const ronde in WORKSHOPS[day]){
-      presTitle.textContent = `${day} – ${ronde}`;
+      presTitle.textContent=`${day} – ${ronde}`;
       WORKSHOPS[day][ronde].forEach(w=>{
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `<div class="title">${w.title}</div><p>Begeleider: ${w.facilitator||''}</p><p>Capaciteit: ${w.capacity||0}</p>`;
-        presGrid.appendChild(card);
+        const c=document.createElement('div');
+        c.className='card';
+        c.innerHTML=`
+          <div class='title'>${w.title}</div>
+          <p>Begeleider: ${w.facilitator||"-"}</p>
+          <p>Organisatie: ${w.organisation||"-"}</p>
+          <p>Capaciteit: ${w.capacity||0}</p>
+          <p>Duur: ${w.duration||0} minuten</p>`;
+        presGrid.appendChild(c);
       });
       return;
     }
   }
 }
 
-// --- NAVIGATIE ---
-const navSignup = document.getElementById('navSignup');
-const navPresentation = document.getElementById('navPresentation');
-navSignup.onclick = ()=>{
-  navSignup.classList.add('active');
-  navPresentation.classList.remove('active');
-  document.getElementById('signupView').style.display='block';
-  document.getElementById('presentationView').style.display='none';
+// --- Navigatie ---
+document.getElementById("navSignup").onclick=()=>{
+  document.getElementById("navSignup").classList.add("active");
+  document.getElementById("navPresentation").classList.remove("active");
+  document.getElementById("signupView").style.display="block";
+  document.getElementById("presentationView").style.display="none";
 };
-navPresentation.onclick = ()=>{
-  navPresentation.classList.add('active');
-  navSignup.classList.remove('active');
-  document.getElementById('signupView').style.display='none';
-  document.getElementById('presentationView').style.display='block';
+document.getElementById("navPresentation").onclick=()=>{
+  document.getElementById("navPresentation").classList.add("active");
+  document.getElementById("navSignup").classList.remove("active");
+  document.getElementById("signupView").style.display="none";
+  document.getElementById("presentationView").style.display="block";
   renderPresentation();
 };
 
-// --- HERSTEL OPGESLAGEN DATA ---
+// --- Herstel opgeslagen data ---
 const saved = localStorage.getItem(STORAGE_KEY);
-if(saved){
-  WORKSHOPS = JSON.parse(saved);
-  renderSignup();
-}
+if(saved){ WORKSHOPS = JSON.parse(saved); renderSignup(); }
 </script>
 </body>
 </html>

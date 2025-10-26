@@ -2,217 +2,493 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Wereld vol verhalen – Inschrijven & Presentatiestand</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Wereld vol verhalen – Inschrijven & Overzicht</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
 <style>
-  :root{--green:#1b4b3b;--bg:#f0f5f7;}
-  body{margin:0;font-family:'Poppins',sans-serif;background:var(--bg);color:#222;}
-  header{background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:20;}
-  .wrap{max-width:1200px;margin:auto;padding:14px 18px;}
-  h1{margin:0;color:var(--green);}
-  nav{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
-  .navbtn{padding:8px 14px;border-radius:999px;border:1px solid #cfe2da;background:white;cursor:pointer;}
-  .navbtn.active{background:var(--green);color:white;}
-  .admin-fab{position:fixed;right:18px;bottom:18px;background:var(--green);color:white;border:none;border-radius:999px;padding:12px 16px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:9999;}
-  .panel{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10000;}
-  .box{background:white;border-radius:12px;padding:20px;width:min(600px,90vw);box-shadow:0 6px 20px rgba(0,0,0,.3);}
-  .btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:14px;}
-  .card{background:white;border:1px solid #e9eef0;border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
-  .badge{display:inline-block;padding:4px 10px;border-radius:999px;border:1px dashed #cfe2da;color:#333;font-size:.85rem;margin-bottom:8px;}
-  .title{font-weight:700;margin:4px 0;color:#222;}
+  :root{ --green:#1b4b3b; --bg:#f6f7f8; --line:#e5e7ea; }
+  *{ box-sizing:border-box }
+  body{ margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:#1a1d21 }
+  header{ position:sticky; top:0; z-index:20; background:#fff; border-bottom:1px solid var(--line) }
+  .wrap{ max-width:1200px; margin:0 auto; padding:14px 18px }
+  h1{ margin:0; color:var(--green); font-size:1.8rem; letter-spacing:.2px }
+  .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px }
+  .tab{ padding:8px 14px; border:1px solid var(--line); border-radius:999px; background:#fff; cursor:pointer; font-weight:600 }
+  .tab.active{ background:var(--green); color:#fff; border-color:var(--green) }
+  .section-title{ margin:18px 0 8px; color:#2b2f34; font-size:1.1rem; font-weight:700 }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:8px }
+  .title{ font-weight:700; color:#1b1f24; }
+  .meta{ color:#4a4f57; font-size:.95rem }
+  .meta small{ color:#6a7078 }
+  .btn{ border:none; padding:9px 12px; border-radius:10px; cursor:pointer; font-weight:600 }
+  .btn-primary{ background:var(--green); color:#fff }
+  .btn-ghost{ background:#fff; color:var(--green); border:1px solid var(--green) }
+  .badge{ display:inline-block; padding:4px 10px; border-radius:999px; border:1px dashed var(--line); color:#394048; font-size:.85rem }
+  /* Floating Admin */
+  .fab{ position:fixed; right:18px; bottom:18px; background:var(--green); color:#fff; padding:12px 14px; border-radius:999px; box-shadow:0 8px 24px rgba(0,0,0,.18); cursor:pointer; z-index:50; font-weight:700 }
+  /* Modal base */
+  .modal,.panel{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(23,26,29,.45); z-index:60 }
+  .modal .box, .panel .box{ width:min(900px,95vw); max-height:90vh; overflow:auto; background:#fff; border-radius:16px; border:1px solid var(--line); box-shadow:0 20px 60px rgba(0,0,0,.22); }
+  .box-head{ padding:16px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between }
+  .box-body{ padding:16px 18px }
+  .close{ background:#fff; border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer; font-weight:600 }
+  /* Admin form */
+  .form{ display:grid; gap:10px }
+  .row{ display:grid; gap:8px; grid-template-columns:1fr 1fr }
+  .row-3{ grid-template-columns:1fr 1fr 1fr }
+  label{ font-size:.9rem; color:#4a4f57; font-weight:600 }
+  input[type="text"], input[type="number"], textarea, select{ width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-family:inherit; font-size:1rem; background:#fff }
+  textarea{ min-height:120px; resize:vertical }
+  .muted{ color:#6a7078; font-size:.92rem }
+  .divider{ height:1px; background:var(--line); margin:12px 0 }
+  .list{ display:flex; flex-direction:column; gap:8px }
+  .pill{ padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:#fff; display:flex; align-items:center; justify-content:space-between; gap:8px }
+  .pill small{ color:#6a7078 }
 </style>
 </head>
 <body>
 
 <header>
   <div class="wrap">
-    <h1>Welkom in de wereld vol verhalen</h1>
-    <nav>
-      <button class="navbtn active" id="navSignup">Inschrijven</button>
-      <button class="navbtn" id="navPresentation">Presentatiestand</button>
-    </nav>
+    <h1>Wereld vol verhalen – Workshops</h1>
+    <div class="tabs" id="dayTabs"></div>
+    <div class="tabs" id="roundTabs" style="margin-top:8px"></div>
   </div>
 </header>
 
-<main class="wrap" id="signupView">
-  <div id="cardsContainer"></div>
+<main class="wrap">
+  <div id="content"></div>
 </main>
 
-<section id="presentationView" style="display:none;">
-  <div class="wrap">
-    <h2 id="presTitle" style="color:var(--green)"></h2>
-    <div id="presGrid" class="grid"></div>
+<!-- Workshop detail (modal) -->
+<div class="modal" id="detailModal">
+  <div class="box">
+    <div class="box-head">
+      <div>
+        <div id="detailTitle" class="title"></div>
+        <div id="detailMeta" class="muted"></div>
+      </div>
+      <button class="close" id="detailClose">Sluiten</button>
+    </div>
+    <div class="box-body">
+      <div class="badge" id="detailBadge"></div>
+      <p id="detailDesc" style="margin:10px 0 16px"></p>
+      <div class="divider"></div>
+      <h3 style="margin:8px 0">Inschrijven</h3>
+      <form id="signupForm" class="form">
+        <div class="row">
+          <div>
+            <label>Naam</label>
+            <input type="text" id="signupName" placeholder="Voor- en achternaam" required />
+          </div>
+          <div>
+            <label>Klas (optioneel)</label>
+            <input type="text" id="signupClass" placeholder="Bijv. 3B" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Aantal ingeschreven</label>
+            <input type="text" id="signupCount" readonly />
+          </div>
+          <div>
+            <label>Capaciteit</label>
+            <input type="text" id="signupCap" readonly />
+          </div>
+        </div>
+        <div>
+          <button type="submit" class="btn btn-primary">Inschrijven</button>
+        </div>
+      </form>
+      <div style="margin-top:14px">
+        <h4 style="margin:0 0 8px">Reeds ingeschreven</h4>
+        <div id="signupList" class="list"></div>
+      </div>
+    </div>
   </div>
-</section>
+</div>
 
-<!-- ADMIN -->
-<button class="admin-fab" id="adminFab">Admin</button>
+<!-- Admin (panel) -->
+<button class="fab" id="adminOpen">Admin</button>
 <div class="panel" id="adminPanel">
   <div class="box">
-    <h2>Back-office</h2>
-    <p>Wachtwoord: <code>admin</code></p>
-    <input type="file" id="importExcelInput" accept=".xlsx,.xls" style="margin-top:8px;">
-    <button id="loadExcelBtn" class="btn" style="margin-top:10px;">Laden</button>
-    <div id="adminContent" style="margin-top:15px; font-size:0.95rem; color:#333;">Nog geen data geladen.</div>
-    <div style="text-align:right;margin-top:20px;">
-      <button id="closeAdmin" class="btn">Sluiten</button>
+    <div class="box-head">
+      <strong style="color:var(--green)">Back-office</strong>
+      <button class="close" id="adminClose">Sluiten</button>
+    </div>
+    <div class="box-body">
+      <p class="muted">Wachtwoord: <code>admin</code>. Hier kun je <strong>toelichtingen</strong> toevoegen of wijzigen. Alles wordt lokaal opgeslagen (browser).</p>
+      <div class="form" style="margin-top:10px">
+        <div class="row-3 row">
+          <div>
+            <label>Dag</label>
+            <select id="admDay"></select>
+          </div>
+          <div>
+            <label>Ronde</label>
+            <select id="admRound"></select>
+          </div>
+          <div>
+            <label>Workshop</label>
+            <select id="admWorkshop"></select>
+          </div>
+        </div>
+        <div>
+          <label>Toelichting</label>
+          <textarea id="admNote" placeholder="Korte beschrijving van de workshop..."></textarea>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center">
+          <button class="btn btn-primary" id="admSave">Opslaan</button>
+          <button class="btn btn-ghost" id="admClear">Leegmaken</button>
+          <span id="admStatus" class="muted"></span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Overzicht toelichtingen</summary>
+        <div id="admOverview" class="list" style="margin-top:10px"></div>
+      </details>
     </div>
   </div>
 </div>
 
 <script>
-let WORKSHOPS = {};
-let uploadedExcel = null;
-const STORAGE_KEY = "wvverhalen_workshops_v6";
+/* ===========================
+   CONFIG & STORAGE KEYS
+=========================== */
+const XLSX_FILE = "workshops.xlsx"; // in de rootmap
+const NOTES_KEY = "wvverhalen_notes_v1";
+const REG_KEY   = "wvverhalen_regs_v1";
 
-function normalize(str){
-  return str.toLowerCase().replace(/[()]/g,"").replace(/[^a-z0-9]/gi,"").trim();
+let DATA = {};          // {Dag:{'11:00':[ {title, facilitator, organisation, capacity, duration} ]}}
+let ACTIVE_DAY  = "Dinsdag";
+let ACTIVE_ROUND = "11:00";
+
+/* ===========================
+   HELPERS
+=========================== */
+function normKey(s){ return (s||"").toLowerCase().replace(/[()]/g,"").replace(/[^a-z0-9]/gi,"").trim(); }
+function keyFor(day, round, title){ return `${day}||${round}||${title}`; }
+function loadNotes(){ try{ return JSON.parse(localStorage.getItem(NOTES_KEY))||{} }catch(e){ return {} } }
+function saveNotes(obj){ localStorage.setItem(NOTES_KEY, JSON.stringify(obj)); }
+function loadRegs(){ try{ return JSON.parse(localStorage.getItem(REG_KEY))||{} }catch(e){ return {} } }
+function saveRegs(obj){ localStorage.setItem(REG_KEY, JSON.stringify(obj)); }
+
+/* ===========================
+   LOAD EXCEL FROM ROOT
+=========================== */
+async function loadExcel(){
+  const resp = await fetch(XLSX_FILE, {cache:"no-cache"});
+  if(!resp.ok) throw new Error("Kan het bestand 'workshops.xlsx' niet vinden in de rootmap.");
+  const buf = await resp.arrayBuffer();
+  const wb  = XLSX.read(buf, {type:"array"});
+  const result = {};
+
+  wb.SheetNames.forEach(name=>{
+    const ws = wb.Sheets[name];
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:""});
+    rows.forEach(r=>{
+      // tolerante kolomherkenning
+      const map = {};
+      for(const k in r){ map[normKey(k)] = r[k]; }
+      const dag   = String(map["dag"]||"").trim();
+      const tijd  = String(map["tijd"]||map["ronde"]||"").trim();
+      const title = String(map["workshop"]||map["titel"]||"").trim();
+      const facil = String(map["begeleider"]||map["docent"]||"").trim();
+      const org   = String(map["organisatie"]||map["bedrijf"]||"").trim();
+      const cap   = parseInt(map["capaciteit"]||map["aantal"]||0);
+      const duur  = parseInt(map["duurminuten"]||map["minuten"]||0);
+
+      if(!title) return;
+      const day   = dag.toLowerCase().includes("don") ? "Donderdag" : "Dinsdag";
+      const round = (tijd.includes("13")) ? "13:00" : "11:00";
+
+      if(!result[day]) result[day] = {};
+      if(!result[day][round]) result[day][round] = [];
+      result[day][round].push({
+        title: title,
+        facilitator: facil,
+        organisation: org,
+        capacity: isNaN(cap)?0:cap,
+        duration: isNaN(duur)?0:duur
+      });
+    });
+  });
+
+  if(Object.keys(result).length===0) throw new Error("Geen geldige rijen gevonden in workshops.xlsx.");
+  DATA = result;
+
+  // default actieve dag/rondes
+  if(DATA["Dinsdag"]){ ACTIVE_DAY = "Dinsdag"; }
+  else if(DATA["Donderdag"]){ ACTIVE_DAY = "Donderdag"; }
+  ACTIVE_ROUND = DATA[ACTIVE_DAY]["11:00"] ? "11:00" : "13:00";
+
+  renderTabs();
+  renderGrid();
 }
 
-// --- Admin functionaliteit ---
-const adminBtn = document.getElementById('adminFab');
-const adminPanel = document.getElementById('adminPanel');
-const closeAdmin = document.getElementById('closeAdmin');
-const excelInput = document.getElementById('importExcelInput');
-const loadExcelBtn = document.getElementById('loadExcelBtn');
-const adminContent = document.getElementById('adminContent');
+/* ===========================
+   RENDER TABS & GRID
+=========================== */
+function renderTabs(){
+  const dayTabs = document.getElementById("dayTabs");
+  const roundTabs = document.getElementById("roundTabs");
+  dayTabs.innerHTML = "";
+  roundTabs.innerHTML = "";
 
-adminBtn.onclick = ()=>{
-  const pw = prompt("Voer wachtwoord in:");
-  if(pw==="admin") adminPanel.style.display="flex";
-  else alert("Onjuist wachtwoord.");
-};
-closeAdmin.onclick = ()=> adminPanel.style.display="none";
+  ["Dinsdag","Donderdag"].forEach(day=>{
+    if(!DATA[day]) return;
+    const b = document.createElement("button");
+    b.className = "tab" + (day===ACTIVE_DAY?" active":"");
+    b.textContent = day;
+    b.onclick = ()=>{ ACTIVE_DAY=day; ACTIVE_ROUND=DATA[day]["11:00"]?"11:00":"13:00"; renderTabs(); renderGrid(); };
+    dayTabs.appendChild(b);
+  });
 
-excelInput.addEventListener("change", ev=>{
-  const file = ev.target.files[0];
-  if(file){ uploadedExcel = file; adminContent.textContent = `Bestand geselecteerd: ${file.name}`; }
-});
+  ["11:00","13:00"].forEach(r=>{
+    if(!(DATA[ACTIVE_DAY] && DATA[ACTIVE_DAY][r])) return;
+    const b = document.createElement("button");
+    b.className = "tab" + (r===ACTIVE_ROUND?" active":"");
+    b.textContent = `Ronde ${r}`;
+    b.onclick = ()=>{ ACTIVE_ROUND=r; renderTabs(); renderGrid(); };
+    roundTabs.appendChild(b);
+  });
+}
 
-// Parser met tolerante kolomherkenning
-loadExcelBtn.addEventListener("click", ()=>{
-  if(!uploadedExcel){ alert("Kies eerst een Excel-bestand."); return; }
-  const reader = new FileReader();
-  reader.onload = (e)=>{
-    try {
-      const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data,{type:'array'});
-      const result = {};
-      wb.SheetNames.forEach(name=>{
-        const ws = wb.Sheets[name];
-        const rows = XLSX.utils.sheet_to_json(ws,{defval:""});
-        rows.forEach(r=>{
-          const keys = {};
-          for(const k in r){ keys[normalize(k)] = r[k]; }
-          const dag = (keys["dag"]||"").toString().trim();
-          const tijd = (keys["tijd"]||keys["ronde"]||"").toString().trim();
-          const titel = (keys["workshop"]||keys["titel"]||"").toString().trim();
-          const begeleider = (keys["begeleider"]||keys["docent"]||"").toString().trim();
-          const organisatie = (keys["organisatie"]||keys["bedrijf"]||"").toString().trim();
-          const cap = parseInt(keys["capaciteit"]||keys["aantal"]||0);
-          const duur = parseInt(keys["duurminuten"]||keys["minuten"]||0);
-          if(!titel) return;
-          const day = dag.toLowerCase().includes("don") ? "Donderdag" : "Dinsdag";
-          const round = tijd.includes("13") ? "13:00" : "11:00";
-          if(!result[day]) result[day] = {};
-          if(!result[day][round]) result[day][round] = [];
-          result[day][round].push({
-            title:titel,
-            facilitator:begeleider,
-            organisation:organisatie,
-            capacity:isNaN(cap)?0:cap,
-            duration:isNaN(duur)?0:duur
-          });
-        });
-      });
-      if(Object.keys(result).length===0) throw new Error("Geen geldige rijen gevonden. Controleer de kolomnamen.");
-      WORKSHOPS = result;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(WORKSHOPS));
-      adminContent.innerHTML = "✅ Workshops succesvol geladen!";
-      renderSignup();
-      renderPresentation();
-    } catch(err){
-      console.error(err);
-      alert("❌ Fout bij laden van Excel: " + err.message);
-      adminContent.innerHTML = "<span style='color:#b00020'>Fout bij lezen van bestand. Controleer de kolomnamen.</span>";
-    }
-  };
-  reader.readAsArrayBuffer(uploadedExcel);
-});
+function renderGrid(){
+  const content = document.getElementById("content");
+  content.innerHTML = "";
 
-// --- Render functies ---
-function renderSignup(){
-  const container = document.getElementById("cardsContainer");
-  container.innerHTML = "";
-  for(const day in WORKSHOPS){
-    for(const ronde in WORKSHOPS[day]){
-      const lijst = WORKSHOPS[day][ronde];
-      const h = document.createElement("h3");
-      h.textContent = `${day} – ${ronde}`;
-      container.appendChild(h);
-      const grid = document.createElement("div");
-      grid.className="grid";
-      lijst.forEach(w=>{
-        const c = document.createElement("div");
-        c.className="card";
-        c.innerHTML = `
-          <div class='badge'>${ronde}</div>
-          <div class='title'>${w.title}</div>
-          <p>Begeleider: ${w.facilitator||"-"}</p>
-          <p>Organisatie: ${w.organisation||"-"}</p>
-          <p>Capaciteit: ${w.capacity||0}</p>
-          <p>Duur: ${w.duration||0} minuten</p>`;
-        grid.appendChild(c);
-      });
-      container.appendChild(grid);
-    }
+  const list = DATA[ACTIVE_DAY]?.[ACTIVE_ROUND] || [];
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = `${ACTIVE_DAY} – Ronde ${ACTIVE_ROUND}`;
+  content.appendChild(title);
+
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  list.forEach(w=>{
+    const k = keyFor(ACTIVE_DAY, ACTIVE_ROUND, w.title);
+    const notes = loadNotes()[k] || "";
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="badge">Ronde ${ACTIVE_ROUND}</div>
+      <div class="title">${w.title}</div>
+      <div class="meta">Begeleider: ${w.facilitator||"-"} · <small>${w.organisation||"-"}</small></div>
+      <div class="meta">Duur: ${w.duration||0} min · Capaciteit: ${w.capacity||0}</div>
+      <button class="btn btn-primary">Details & inschrijven</button>
+    `;
+    card.querySelector("button").onclick = ()=> openDetail(w);
+    grid.appendChild(card);
+  });
+
+  if(!list.length){
+    const empty = document.createElement("div");
+    empty.className = "muted";
+    empty.textContent = "Er zijn geen workshops voor dit moment.";
+    content.appendChild(empty);
   }
+  content.appendChild(grid);
 }
 
-function renderPresentation(){
-  const presGrid=document.getElementById('presGrid');
-  const presTitle=document.getElementById('presTitle');
-  presGrid.innerHTML="";
-  for(const day in WORKSHOPS){
-    for(const ronde in WORKSHOPS[day]){
-      presTitle.textContent=`${day} – ${ronde}`;
-      WORKSHOPS[day][ronde].forEach(w=>{
-        const c=document.createElement('div');
-        c.className='card';
-        c.innerHTML=`
-          <div class='title'>${w.title}</div>
-          <p>Begeleider: ${w.facilitator||"-"}</p>
-          <p>Organisatie: ${w.organisation||"-"}</p>
-          <p>Capaciteit: ${w.capacity||0}</p>
-          <p>Duur: ${w.duration||0} minuten</p>`;
-        presGrid.appendChild(c);
-      });
-      return;
-    }
+/* ===========================
+   DETAIL MODAL + INSCHRIJVEN
+=========================== */
+const detailModal = document.getElementById("detailModal");
+const detailClose = document.getElementById("detailClose");
+const detailTitle = document.getElementById("detailTitle");
+const detailMeta  = document.getElementById("detailMeta");
+const detailBadge = document.getElementById("detailBadge");
+const detailDesc  = document.getElementById("detailDesc");
+const signupForm  = document.getElementById("signupForm");
+const signupName  = document.getElementById("signupName");
+const signupClass = document.getElementById("signupClass");
+const signupCount = document.getElementById("signupCount");
+const signupCap   = document.getElementById("signupCap");
+const signupList  = document.getElementById("signupList");
+let CURRENT_KEY = null;
+let CURRENT_WORKSHOP = null;
+
+function openDetail(w){
+  CURRENT_WORKSHOP = w;
+  CURRENT_KEY = keyFor(ACTIVE_DAY, ACTIVE_ROUND, w.title);
+
+  detailTitle.textContent = w.title;
+  detailMeta.textContent  = `${ACTIVE_DAY} – ${ACTIVE_ROUND} · ${w.facilitator||"-"} · ${w.organisation||"-"}`;
+  detailBadge.textContent = `Duur ${w.duration||0} min · Capaciteit ${w.capacity||0}`;
+
+  const notes = loadNotes()[CURRENT_KEY] || "Nog geen toelichting toegevoegd.";
+  detailDesc.textContent = notes;
+
+  updateSignupUI();
+
+  detailModal.style.display = "flex";
+}
+detailClose.onclick = ()=> detailModal.style.display="none";
+detailModal.addEventListener("click",(e)=>{ if(e.target===detailModal) detailModal.style.display="none"; });
+
+function updateSignupUI(){
+  const regs  = loadRegs();
+  const arr   = regs[CURRENT_KEY] || [];
+  const cap   = CURRENT_WORKSHOP.capacity || 0;
+
+  signupCount.value = arr.length;
+  signupCap.value   = cap ? cap : "—";
+
+  signupList.innerHTML = "";
+  arr.forEach((x,i)=>{
+    const row = document.createElement("div");
+    row.className = "pill";
+    row.innerHTML = `<span>${i+1}. ${x.name}${x.klas?` (${x.klas})`:""}</span><small>${new Date(x.ts).toLocaleString()}</small>`;
+    signupList.appendChild(row);
+  });
+}
+
+signupForm.onsubmit = (ev)=>{
+  ev.preventDefault();
+  const name = signupName.value.trim();
+  const klas = signupClass.value.trim();
+  if(!name){ alert("Vul een naam in."); return; }
+
+  const regs = loadRegs();
+  const arr  = regs[CURRENT_KEY] || [];
+  if(arr.some(x=>x.name.toLowerCase()===name.toLowerCase())){
+    alert("Deze naam staat al ingeschreven voor deze workshop.");
+    return;
   }
+  // (optioneel) capaciteit check
+  const cap = CURRENT_WORKSHOP.capacity || 0;
+  if(cap>0 && arr.length>=cap){ alert("Deze workshop is vol."); return; }
+
+  arr.push({name, klas, ts: new Date().toISOString()});
+  regs[CURRENT_KEY] = arr; saveRegs(regs);
+
+  signupName.value = ""; signupClass.value = "";
+  updateSignupUI();
+  alert("Inschrijving gelukt!");
+};
+
+/* ===========================
+   ADMIN: TOELICHTINGEN
+=========================== */
+const adminOpen  = document.getElementById("adminOpen");
+const adminPanel = document.getElementById("adminPanel");
+const adminClose = document.getElementById("adminClose");
+
+const admDay = document.getElementById("admDay");
+const admRound = document.getElementById("admRound");
+const admWorkshop = document.getElementById("admWorkshop");
+const admNote = document.getElementById("admNote");
+const admSave = document.getElementById("admSave");
+const admClear = document.getElementById("admClear");
+const admStatus = document.getElementById("admStatus");
+const admOverview = document.getElementById("admOverview");
+
+adminOpen.onclick = ()=>{
+  const pw = prompt("Wachtwoord:");
+  if(pw!=="admin"){ alert("Onjuist wachtwoord."); return; }
+  fillAdminSelectors();
+  adminPanel.style.display="flex";
+};
+adminClose.onclick = ()=> adminPanel.style.display="none";
+adminPanel.addEventListener("click",(e)=>{ if(e.target===adminPanel) adminPanel.style.display="none"; });
+
+function fillAdminSelectors(){
+  // Dag
+  admDay.innerHTML = "";
+  Object.keys(DATA).forEach(d=>{
+    const o=document.createElement("option"); o.value=d; o.textContent=d; admDay.appendChild(o);
+  });
+  admDay.value = ACTIVE_DAY;
+
+  // Ronde
+  fillRounds();
+  // Workshops
+  fillWorkshops();
+  // Note
+  loadCurrentNote();
+  // Overzicht
+  renderNoteOverview();
 }
 
-// --- Navigatie ---
-document.getElementById("navSignup").onclick=()=>{
-  document.getElementById("navSignup").classList.add("active");
-  document.getElementById("navPresentation").classList.remove("active");
-  document.getElementById("signupView").style.display="block";
-  document.getElementById("presentationView").style.display="none";
+function fillRounds(){
+  admRound.innerHTML = "";
+  ["11:00","13:00"].forEach(r=>{
+    if(DATA[admDay.value] && DATA[admDay.value][r]){
+      const o=document.createElement("option"); o.value=r; o.textContent=r; admRound.appendChild(o);
+    }
+  });
+  admRound.value = (DATA[admDay.value]["11:00"]?"11:00":"13:00");
+}
+function fillWorkshops(){
+  admWorkshop.innerHTML = "";
+  const list = DATA[admDay.value][admRound.value] || [];
+  list.forEach(w=>{
+    const o=document.createElement("option"); o.value=w.title; o.textContent=w.title; admWorkshop.appendChild(o);
+  });
+}
+function loadCurrentNote(){
+  const k = keyFor(admDay.value, admRound.value, admWorkshop.value);
+  const notes = loadNotes();
+  admNote.value = notes[k] || "";
+}
+admDay.onchange = ()=>{ fillRounds(); fillWorkshops(); loadCurrentNote(); };
+admRound.onchange = ()=>{ fillWorkshops(); loadCurrentNote(); };
+admWorkshop.onchange = ()=>{ loadCurrentNote(); };
+
+admSave.onclick = ()=>{
+  const k = keyFor(admDay.value, admRound.value, admWorkshop.value);
+  const notes = loadNotes(); notes[k] = admNote.value.trim(); saveNotes(notes);
+  admStatus.textContent = "Opgeslagen.";
+  setTimeout(()=>admStatus.textContent="",1500);
+  // refresh detail indien open
+  if(CURRENT_KEY===k){ detailDesc.textContent = notes[k] || "Nog geen toelichting toegevoegd."; }
+  renderNoteOverview();
 };
-document.getElementById("navPresentation").onclick=()=>{
-  document.getElementById("navPresentation").classList.add("active");
-  document.getElementById("navSignup").classList.remove("active");
-  document.getElementById("signupView").style.display="none";
-  document.getElementById("presentationView").style.display="block";
-  renderPresentation();
+admClear.onclick = ()=>{
+  if(!confirm("Toelichting leegmaken?")) return;
+  const k = keyFor(admDay.value, admRound.value, admWorkshop.value);
+  const notes = loadNotes(); delete notes[k]; saveNotes(notes);
+  admNote.value = ""; admStatus.textContent = "Leeg gemaakt.";
+  setTimeout(()=>admStatus.textContent="",1500);
+  if(CURRENT_KEY===k){ detailDesc.textContent = "Nog geen toelichting toegevoegd."; }
+  renderNoteOverview();
 };
 
-// --- Herstel opgeslagen data ---
-const saved = localStorage.getItem(STORAGE_KEY);
-if(saved){ WORKSHOPS = JSON.parse(saved); renderSignup(); }
+function renderNoteOverview(){
+  const notes = loadNotes();
+  admOverview.innerHTML = "";
+  Object.keys(DATA).forEach(d=>{
+    ["11:00","13:00"].forEach(r=>{
+      const list = DATA[d][r] || [];
+      list.forEach(w=>{
+        const k = keyFor(d,r,w.title);
+        const pill = document.createElement("div");
+        pill.className = "pill";
+        pill.innerHTML = `<span><strong>${w.title}</strong> · ${d} ${r}</span><small>${(notes[k]||"").slice(0,60) || "—"}</small>`;
+        admOverview.appendChild(pill);
+      });
+    });
+  });
+}
+
+/* ===========================
+   INIT
+=========================== */
+(async ()=>{
+  try{
+    await loadExcel();
+  }catch(e){
+    document.getElementById("content").innerHTML = `<p style="color:#b00020">❌ ${e.message}</p>
+    <p class="muted">Zorg dat <code>workshops.xlsx</code> in dezelfde map staat als dit bestand en dat de eerste rij kolomnamen bevat: 
+    <em>Dag, Tijd, Workshop, Begeleider, Organisatie, Capaciteit, Duur (minuten)</em>.</p>`;
+    console.error(e);
+  }
+})();
 </script>
 </body>
 </html>
